@@ -1,0 +1,7 @@
+# Phase 1 only — add more as we progress through phases
+pymupdf
+transformers
+torch
+streamlit
+fastapi
+uvicorn
