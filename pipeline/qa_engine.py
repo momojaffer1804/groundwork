@@ -135,7 +135,55 @@ def answer_question(question: str, full_text: str, verbose: bool = True):
 
     return best, elapsed
 
+def answer_question_v2(question: str, chunks: list, verbose: bool = True):
+    """
+    Phase 4: retrieval-augmented extractive QA.
 
+    Instead of running the reader over every window (Phase 1) or every
+    chunk, we first narrow down to the top-k chunks most semantically
+    relevant to the question (via retriever.py), and only run the
+    reader on those. Same per-window scoring logic as Phase 1's
+    _answer_single_window, just applied to a much smaller, smarter
+    candidate set.
+    """
+    from retriever import retrieve_top_k
+
+    tokenizer, model = _load_model()
+
+    top_chunks = retrieve_top_k(question, chunks)
+    if verbose:
+        print(f"Retriever narrowed {len(chunks)} chunks down to top {len(top_chunks)}.")
+        print(f"Running QA model over top {len(top_chunks)} chunks...\n")
+
+    best = {"answer": None, "score": -1.0, "chunk_idx": None, "retrieval_score": None}
+    start_time = time.time()
+
+    for rank, (chunk, retrieval_score) in enumerate(top_chunks):
+        if not chunk.strip():
+            continue
+        result = _answer_single_window(question, chunk, tokenizer, model)
+        if verbose:
+            print(f"  rank {rank+1}: reader_score={result['score']:.4f}  "
+                  f"retrieval_score={retrieval_score:.4f}  answer={result['answer']!r}")
+
+        if not result["answer"]:
+            continue
+
+        combined_score = result["score"] * retrieval_score
+        if combined_score > best["score"]:
+            best = {
+            "answer": result["answer"],
+            "score": combined_score,
+            "chunk_idx": rank,
+            "retrieval_score": retrieval_score,
+    }
+    elapsed = time.time() - start_time
+
+    if verbose:
+        print(f"\nDone in {elapsed:.1f}s across {len(top_chunks)} chunks "
+              f"({elapsed / max(len(top_chunks), 1):.2f}s/chunk avg).")
+
+    return best, elapsed
 if __name__ == "__main__":
     # Usage: python pipeline/qa_engine.py sample_papers/your_paper.pdf "your question"
     if len(sys.argv) != 3:
@@ -144,15 +192,21 @@ if __name__ == "__main__":
 
     pdf_path, question = sys.argv[1], sys.argv[2]
 
+    from chunker import chunk_text
+
     print(f"Parsing {pdf_path}...")
     text = extract_text(pdf_path)
     print(f"Extracted {len(text)} characters.\n")
 
-    result, elapsed = answer_question(question, text)
+    chunks = chunk_text(text)
+    print(f"Document split into {len(chunks)} chunks.\n")
 
-    print("\n===== RESULT =====")
+    result, elapsed = answer_question_v2(question, chunks)
+
+    print("\nRESULT (Phase 4: retrieval + reader)")
     print(f"Question: {question}")
     print(f"Answer:   {result['answer']}")
-    print(f"Score:    {result['score']:.4f}")
-    print(f"Found in window #{result['window_idx']}")
-    print(f"Total latency: {elapsed:.1f}s  <-- write this down, Phase 3 should beat it")
+    print(f"Reader score:    {result['score']:.4f}")
+    print(f"Retrieval score: {result['retrieval_score']:.4f}")
+    print(f"Found in top-k rank #{result['chunk_idx'] + 1}")
+    print(f"Total latency: {elapsed:.1f}s  <-- compare this to Phase 1's number")
