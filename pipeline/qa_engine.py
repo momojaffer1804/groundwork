@@ -135,52 +135,63 @@ def answer_question(question: str, full_text: str, verbose: bool = True):
 
     return best, elapsed
 
-def answer_question_v2(question: str, chunks: list, verbose: bool = True):
+def answer_question_v2(question: str, chunks: list, verbose: bool = True, top_k: int = None):
     """
-    Phase 4: retrieval-augmented extractive QA.
+    Retrieval-backed QA (Phase 3/4): retrieve only the top-k most
+    relevant chunks, then run the reader on just those -- instead of
+    every chunk in the document like answer_question() does.
 
-    Instead of running the reader over every window (Phase 1) or every
-    chunk, we first narrow down to the top-k chunks most semantically
-    relevant to the question (via retriever.py), and only run the
-    reader on those. Same per-window scoring logic as Phase 1's
-    _answer_single_window, just applied to a much smaller, smarter
-    candidate set.
+    Selection uses a COMBINED score (reader_score * retrieval_score),
+    not the reader's score alone. This matters because the reader can
+    be near-zero confidence on a chunk that got retrieved anyway (low
+    semantic relevance, or genuinely no answer present) and still
+    decode SOME span -- multiplying by retrieval similarity pulls
+    those false-confidence answers down instead of letting a
+    borderline reader_score slip through as if it were trustworthy.
     """
-    from retriever import retrieve_top_k
+    from retriever import retrieve_top_k, TOP_K
 
     tokenizer, model = _load_model()
+    k = top_k or TOP_K
 
-    top_chunks = retrieve_top_k(question, chunks)
+    top_chunks = retrieve_top_k(question, chunks, k=k)
+
     if verbose:
-        print(f"Retriever narrowed {len(chunks)} chunks down to top {len(top_chunks)}.")
-        print(f"Running QA model over top {len(top_chunks)} chunks...\n")
+        print(f"Retrieved top {len(top_chunks)} chunks, running reader on each...\n")
 
-    best = {"answer": None, "score": -1.0, "chunk_idx": None, "retrieval_score": None}
+    best = {"answer": None, "score": -1.0, "reader_score": None,
+            "retrieval_score": None, "chunk_rank": None}
     start_time = time.time()
 
     for rank, (chunk, retrieval_score) in enumerate(top_chunks):
         if not chunk.strip():
             continue
         result = _answer_single_window(question, chunk, tokenizer, model)
-        if verbose:
-            print(f"  rank {rank+1}: reader_score={result['score']:.4f}  "
-                  f"retrieval_score={retrieval_score:.4f}  answer={result['answer']!r}")
+        combined_score = result["score"] * retrieval_score
 
+        if verbose:
+            print(f"  rank {rank+1}: reader={result['score']:.4f}  "
+                  f"retrieval={retrieval_score:.4f}  combined={combined_score:.4f}  "
+                  f"answer={result['answer']!r}")
+
+        # Same null-answer filter as Phase 1 -- an empty span is never
+        # a real answer, regardless of how confident the reader is.
         if not result["answer"]:
             continue
 
-        combined_score = result["score"] * retrieval_score
         if combined_score > best["score"]:
             best = {
-            "answer": result["answer"],
-            "score": combined_score,
-            "chunk_idx": rank,
-            "retrieval_score": retrieval_score,
-    }
+                "answer": result["answer"],
+                "score": combined_score,
+                "reader_score": result["score"],
+                "retrieval_score": retrieval_score,
+                "chunk_rank": rank,
+            }
+
     elapsed = time.time() - start_time
 
     if verbose:
-        print(f"\nDone in {elapsed:.1f}s across {len(top_chunks)} chunks "
+        print(f"\nDone in {elapsed:.1f}s across {len(top_chunks)} retrieved chunks "
               f"({elapsed / max(len(top_chunks), 1):.2f}s/chunk avg).")
 
     return best, elapsed
