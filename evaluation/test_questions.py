@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pipeline"))
 
 from parser import extract_text
 from chunker import chunk_text
-from qa_engine import answer_question_v2
+from qa_engine import answer_question_v3
 
 # Temporary Threshold
 REFUSAL_THRESHOLD = 0.30
@@ -24,7 +24,7 @@ questions = [
 ]
 
 for q in questions:
-    result, elapsed = answer_question_v2(q, chunks, verbose=False)
+    result, elapsed = answer_question_v3(q, chunks, verbose=False)
     print(f"\nQ: {q}")
 
     if result["answer"] is None:
@@ -34,4 +34,4 @@ for q in questions:
               f"(would-have-said: {result['answer']!r}, {elapsed:.1f}s)")
     else:
         print(f"A: {result['answer']!r}  (combined={result['score']:.4f}, "
-              f"retrieval={result['retrieval_score']:.4f}, {elapsed:.1f}s)")
+            f"rerank={result['rerank_score']:.4f}, {elapsed:.1f}s)")    

@@ -195,6 +195,66 @@ def answer_question_v2(question: str, chunks: list, verbose: bool = True, top_k:
               f"({elapsed / max(len(top_chunks), 1):.2f}s/chunk avg).")
 
     return best, elapsed
+def answer_question_v3(question: str, chunks: list, verbose: bool = True, top_k_retrieve: int = None, top_k_rerank: int = None):
+    """
+    Full pipeline (Phase 4): retrieve top-k via bi-encoder, rerank down
+    to a smaller top-k via cross-encoder, THEN run the reader only on
+    those reranked chunks.
+
+    This fixes the failure mode found in answer_question_v2: bi-encoder
+    retrieval alone can rank a wrong-but-topically-related chunk close
+    to the right one, and a falsely confident reader score can then tip
+    the combined score toward the wrong answer. The cross-encoder gives
+    a much sharper "does this chunk actually answer the question"
+    signal before the reader ever runs, so the reader is choosing among
+    a much cleaner, smaller set of candidates.
+    """
+    from retriever import retrieve_top_k, TOP_K
+    from reranker import rerank, TOP_K_AFTER_RERANK
+
+    tokenizer, model = _load_model()
+    k_retrieve = top_k_retrieve or TOP_K
+    k_rerank = top_k_rerank or TOP_K_AFTER_RERANK
+
+    retrieved = retrieve_top_k(question, chunks, k=k_retrieve)
+    reranked = rerank(question, retrieved, top_k=k_rerank)
+
+    if verbose:
+        print(f"Retrieved {len(retrieved)} -> reranked to top {len(reranked)}, running reader...\n")
+
+    best = {"answer": None, "score": -1.0, "reader_score": None,
+            "rerank_score": None, "chunk_rank": None}
+    start_time = time.time()
+
+    for rank, (chunk, rerank_score) in enumerate(reranked):
+        if not chunk.strip():
+            continue
+        result = _answer_single_window(question, chunk, tokenizer, model)
+        combined_score = result["score"] * rerank_score
+
+        if verbose:
+            print(f"  rank {rank+1}: reader={result['score']:.4f}  "
+                  f"rerank={rerank_score:.4f}  combined={combined_score:.4f}  "
+                  f"answer={result['answer']!r}")
+
+        if not result["answer"]:
+            continue
+
+        if combined_score > best["score"]:
+            best = {
+                "answer": result["answer"],
+                "score": combined_score,
+                "reader_score": result["score"],
+                "rerank_score": rerank_score,
+                "chunk_rank": rank,
+            }
+
+    elapsed = time.time() - start_time
+
+    if verbose:
+        print(f"\nDone in {elapsed:.1f}s across {len(reranked)} reranked chunks.")
+
+    return best, elapsed
 if __name__ == "__main__":
     # Usage: python pipeline/qa_engine.py sample_papers/your_paper.pdf "your question"
     if len(sys.argv) != 3:
