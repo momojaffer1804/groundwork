@@ -1,0 +1,17 @@
+{
+  "paper": "sample_papers/attention.pdf",
+  "questions": [
+    {"question": "How many attention heads does the base model use?", "expected_answer": "8", "answerable": true},
+    {"question": "What dataset was used for English-to-German translation?", "expected_answer": "WMT 2014", "answerable": true},
+    {"question": "How long did the base model train for?", "expected_answer": "12 hours", "answerable": true},
+    {"question": "What optimizer was used for training?", "expected_answer": "Adam", "answerable": true},
+    {"question": "What is the dropout rate used?", "expected_answer": "0.1", "answerable": true},
+    {"question": "How many encoder layers does the base model have?", "expected_answer": "6", "answerable": true},
+    {"question": "What is the value of dmodel in the base model?", "expected_answer": "512", "answerable": true},
+    {"question": "What is beam search width used for inference?", "expected_answer": "4", "answerable": true},
+    {"question": "What optimizer did the BERT paper use?", "expected_answer": null, "answerable": false},
+    {"question": "Who wrote the PyTorch framework?", "expected_answer": null, "answerable": false},
+    {"question": "What was the model's Twitter engagement after release?", "expected_answer": null, "answerable": false},
+    {"question": "What GPU did Tesla use for their self-driving models?", "expected_answer": null, "answerable": false}
+  ]
+}
