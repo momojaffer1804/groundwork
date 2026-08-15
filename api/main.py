@@ -1,48 +1,27 @@
-"""
-Phase 6 -- FastAPI wrapper around the Groundwork pipeline.
-
-Loads all models ONCE at server startup (not per-request) and exposes
-a single /ask endpoint that runs the full pipeline: parse -> chunk ->
-retrieve -> rerank -> read -> threshold check.
-
-Run with: uvicorn api.main:app --reload
-Then visit http://127.0.0.1:8000/docs for interactive API docs.
-"""
-
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pipeline"))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
-from parser import extract_text
+from parser import extract_text_from_bytes
 from chunker import chunk_text
 from qa_engine import answer_question_v3, _load_model
 from retriever import _get_model as _load_retriever_model
 from reranker import _get_reranker
 
-# Evidence-based threshold from the 12-question eval set (see
-# evaluation/eval_runner.py for how this was picked).
 REFUSAL_THRESHOLD = 0.15
 
 app = FastAPI(title="Groundwork", description="Grounded QA over research papers")
 
-# In-memory cache: paper path -> list of chunks, so we don't re-parse
-# and re-chunk the same paper on every question. Simple dict is fine
-# at this scale (a handful of papers) -- no need for a real cache/DB.
 _chunk_cache = {}
 
 
 @app.on_event("startup")
 def load_models_on_startup():
-    """
-    Load all three models once when the server starts, not on every
-    request. This is the whole point of running as a server instead
-    of a one-off script -- avoids the multi-second reload cost we
-    kept hitting during CLI testing.
-    """
     print("Loading models (this happens once, at startup)...")
     _load_model()
     _load_retriever_model()
@@ -51,7 +30,7 @@ def load_models_on_startup():
 
 
 class AskRequest(BaseModel):
-    paper_path: str
+    paper_id: str
     question: str
 
 
@@ -63,45 +42,42 @@ class AskResponse(BaseModel):
     reason: str | None = None
 
 
-def _get_chunks(paper_path: str) -> list:
-    if paper_path not in _chunk_cache:
-        if not Path(paper_path).exists():
-            raise HTTPException(status_code=404, detail=f"No PDF found at {paper_path}")
-        text = extract_text(paper_path)
-        _chunk_cache[paper_path] = chunk_text(text)
-    return _chunk_cache[paper_path]
+class UploadResponse(BaseModel):
+    paper_id: str
+    filename: str
+    num_chunks: int
+
+
+@app.post("/upload", response_model=UploadResponse)
+async def upload_paper(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    paper_id = str(uuid.uuid4())
+    contents = await file.read()
+
+    text = extract_text_from_bytes(contents)
+    chunks = chunk_text(text)
+    _chunk_cache[paper_id] = chunks
+
+    return UploadResponse(paper_id=paper_id, filename=file.filename, num_chunks=len(chunks))
 
 
 @app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest):
-    chunks = _get_chunks(request.paper_path)
+    if request.paper_id not in _chunk_cache:
+        raise HTTPException(status_code=404, detail="Unknown paper_id. Upload a PDF via /upload first.")
+    chunks = _chunk_cache[request.paper_id]
 
     result, elapsed = answer_question_v3(request.question, chunks, verbose=False)
 
     if result["answer"] is None:
-        return AskResponse(
-            question=request.question,
-            answer=None,
-            confidence=0.0,
-            refused=True,
-            reason="No answer found in the document.",
-        )
+        return AskResponse(question=request.question, answer=None, confidence=0.0, refused=True, reason="No answer found in the document.")
 
     if result["score"] < REFUSAL_THRESHOLD:
-        return AskResponse(
-            question=request.question,
-            answer=None,
-            confidence=result["score"],
-            refused=True,
-            reason=f"Confidence {result['score']:.4f} below threshold {REFUSAL_THRESHOLD}.",
-        )
+        return AskResponse(question=request.question, answer=None, confidence=result["score"], refused=True, reason=f"Confidence {result['score']:.4f} below threshold {REFUSAL_THRESHOLD}.")
 
-    return AskResponse(
-        question=request.question,
-        answer=result["answer"],
-        confidence=result["score"],
-        refused=False,
-    )
+    return AskResponse(question=request.question, answer=result["answer"], confidence=result["score"], refused=False)
 
 
 @app.get("/health")

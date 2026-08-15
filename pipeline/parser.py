@@ -44,6 +44,15 @@ def extract_text(pdf_path: str) -> str:
     doc.close()
 
     return "".join(pages)
+def extract_text_from_bytes(pdf_bytes: bytes) -> str:
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    pages = []
+    for page_num, page in enumerate(doc, start=1):
+        text = page.get_text()
+        text = _strip_page_numbers(text)
+        pages.append(f"\n--- Page {page_num} ---\n{text}")
+    doc.close()
+    return "".join(pages)
 if __name__ == "__main__":
     # Usage: python pipeline/parser.py sample_papers/your_paper.pdf
     if len(sys.argv) != 2:
