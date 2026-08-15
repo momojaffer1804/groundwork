@@ -6,7 +6,7 @@ from Phase 1 with a proper retrieval step: embed all chunks once,
 embed the question, and use cosine similarity to narrow down to the
 top-k most relevant chunks before the reader ever runs.
 
-This is the direct fix for the failure mode we saw in Phase 1: the
+This is the direct fix for the failure mode we saw in Phase 1: the c 
 reader picking a wrong-but-confident answer ("beam search") because
 it had no way to know which of 23 windows was actually about the
 right topic. Retrieval solves that by scoring relevance BEFORE
