@@ -1,0 +1,122 @@
+[
+  {
+    "question": "By what percentage did PD prevalence increase between 1990 and 2016?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "74.3%",
+    "expected": "74.3%",
+    "correct": true,
+    "score": 0.928210437297821,
+    "reader_score": 0.9293702702879898,
+    "rerank_score": 0.9987519979476929,
+    "elapsed": 1.0580592155456543
+  },
+  {
+    "question": "Who first described Parkinson's disease and in what year?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "James Parkinson",
+    "expected": "James Parkinson, 1817",
+    "correct": false,
+    "score": 0.6600083708763123,
+    "reader_score": 0.6636919194263768,
+    "rerank_score": 0.9944498538970947,
+    "elapsed": 1.1623284816741943
+  },
+  {
+    "question": "What percentage of PD patients experience gait freezing and falls after about 17 years?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "80%",
+    "expected": "80%",
+    "correct": true,
+    "score": 0.5756427049636841,
+    "reader_score": 0.5759417951845336,
+    "rerank_score": 0.999480664730072,
+    "elapsed": 1.1389527320861816
+  },
+  {
+    "question": "What gene is most commonly associated with autosomal-dominant Parkinson's disease?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "Parkin",
+    "expected": "LRRK2",
+    "correct": false,
+    "score": 0.6863145232200623,
+    "reader_score": 0.9692255294524585,
+    "rerank_score": 0.7081061005592346,
+    "elapsed": 1.2029423713684082
+  },
+  {
+    "question": "What gene is the most common cause of autosomal-recessive early-onset Parkinson's syndrome?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "PARK2",
+    "expected": "PRKN",
+    "correct": false,
+    "score": 0.9961644411087036,
+    "reader_score": 0.9995806525101898,
+    "rerank_score": 0.9965823292732239,
+    "elapsed": 1.1507236957550049
+  },
+  {
+    "question": "What percentage of people with PD experience hyposmia or anosmia?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "90%",
+    "expected": "90%",
+    "correct": true,
+    "score": 0.7036698460578918,
+    "reader_score": 0.7059330993402568,
+    "rerank_score": 0.9967939257621765,
+    "elapsed": 1.0088818073272705
+  },
+  {
+    "question": "What percentage reduction in daily L-DOPA dose was achieved after iPSC-derived dopamine cell transplantation?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "6%",
+    "expected": "6%",
+    "correct": true,
+    "score": 0.8671596646308899,
+    "reader_score": 0.9182927896489446,
+    "rerank_score": 0.9443172216415405,
+    "elapsed": 1.2768335342407227
+  },
+  {
+    "question": "What is the survival rate for Parkinson's disease patients after diagnosis?",
+    "should_answer": false,
+    "refused": true,
+    "given_answer": null,
+    "expected": null,
+    "correct": null,
+    "score": 0.051108527928590775,
+    "reader_score": 0.132447402142569,
+    "rerank_score": 0.38587790727615356,
+    "elapsed": 0.9815280437469482
+  },
+  {
+    "question": "What was the funding amount awarded for this study?",
+    "should_answer": false,
+    "refused": true,
+    "given_answer": null,
+    "expected": null,
+    "correct": null,
+    "score": -1.0,
+    "reader_score": -1.0,
+    "rerank_score": -1.0,
+    "elapsed": 1.180464744567871
+  },
+  {
+    "question": "What optimizer did the BERT paper use?",
+    "should_answer": false,
+    "refused": true,
+    "given_answer": null,
+    "expected": null,
+    "correct": null,
+    "score": -1.0,
+    "reader_score": -1.0,
+    "rerank_score": -1.0,
+    "elapsed": 1.2072930335998535
+  }
+]

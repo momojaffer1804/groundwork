@@ -10,6 +10,7 @@ README rather than pretending it's more rigorous than it is.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -69,7 +70,9 @@ def run_eval(eval_set_path: str = "evaluation/test_questions.json"):
             "given_answer": given_answer,
             "expected": expected,
             "correct": correct,
-            "score": result["score"],
+            "score": float(result["score"]),
+            "reader_score": float(result.get("reader_score") or -1.0),
+            "rerank_score": float(result.get("rerank_score") or -1.0),
             "elapsed": elapsed,
         })
 
@@ -104,6 +107,13 @@ def run_eval(eval_set_path: str = "evaluation/test_questions.json"):
 
     avg_latency = sum(r["elapsed"] for r in results) / len(results)
     print(f"\nAvg latency per question: {avg_latency:.1f}s")
+
+    # save raw results for offline threshold sweeping (no rerun needed)
+    os.makedirs("evaluation/results", exist_ok=True)
+    out_name = Path(eval_set_path).stem + "_raw.json"
+    with open(f"evaluation/results/{out_name}", "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    print(f"\nSaved raw results to evaluation/results/{out_name}")
 
     return results
 

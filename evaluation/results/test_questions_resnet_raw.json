@@ -1,0 +1,122 @@
+[
+  {
+    "question": "What is the top-5 error rate of the ResNet ensemble on the ImageNet test set?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "3.57%",
+    "expected": "3.57%",
+    "correct": true,
+    "score": 0.9908590316772461,
+    "reader_score": 0.9995345630706254,
+    "rerank_score": 0.9913204312324524,
+    "elapsed": 1.3253669738769531
+  },
+  {
+    "question": "How many layers does the deepest ResNet used for ImageNet classification have?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "152",
+    "expected": "152",
+    "correct": true,
+    "score": 0.9548093676567078,
+    "reader_score": 0.9648919456791134,
+    "rerank_score": 0.9895505309104919,
+    "elapsed": 1.145125389099121
+  },
+  {
+    "question": "What is the top-1 error rate of the 34-layer plain network on ImageNet validation?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "28.54 25.03",
+    "expected": "28.54",
+    "correct": true,
+    "score": 0.9878180027008057,
+    "reader_score": 0.9990905271212753,
+    "rerank_score": 0.9887171983718872,
+    "elapsed": 1.370488166809082
+  },
+  {
+    "question": "What relative improvement was obtained on the COCO object detection dataset?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "28%",
+    "expected": "28%",
+    "correct": true,
+    "score": 0.9896843433380127,
+    "reader_score": 0.9972992989264782,
+    "rerank_score": 0.9923644065856934,
+    "elapsed": 1.1109094619750977
+  },
+  {
+    "question": "What optimization method was used to train the networks, SGD or Adam?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "backpropagation",
+    "expected": "SGD",
+    "correct": false,
+    "score": 0.3547045588493347,
+    "reader_score": 0.9902209978979855,
+    "rerank_score": 0.35820746421813965,
+    "elapsed": 1.1068477630615234
+  },
+  {
+    "question": "What weight decay value was used in ImageNet training?",
+    "should_answer": true,
+    "refused": true,
+    "given_answer": null,
+    "expected": "0.0001",
+    "correct": false,
+    "score": -1.0,
+    "reader_score": -1.0,
+    "rerank_score": -1.0,
+    "elapsed": 1.0024776458740234
+  },
+  {
+    "question": "How many layers does the aggressively deep CIFAR-10 model explored in this paper have?",
+    "should_answer": true,
+    "refused": false,
+    "given_answer": "1000 layers",
+    "expected": "1202",
+    "correct": false,
+    "score": 0.8153229355812073,
+    "reader_score": 0.8533141082829445,
+    "rerank_score": 0.9554781317710876,
+    "elapsed": 1.4255790710449219
+  },
+  {
+    "question": "What GPU model did the authors use to train their networks?",
+    "should_answer": false,
+    "refused": true,
+    "given_answer": null,
+    "expected": null,
+    "correct": null,
+    "score": -1.0,
+    "reader_score": -1.0,
+    "rerank_score": -1.0,
+    "elapsed": 1.218625545501709
+  },
+  {
+    "question": "What was ResNet's accuracy on the MNIST dataset?",
+    "should_answer": false,
+    "refused": false,
+    "given_answer": "very compet- itive accuracy",
+    "expected": null,
+    "correct": null,
+    "score": 0.6713266968727112,
+    "reader_score": 0.9087131810989675,
+    "rerank_score": 0.7387663722038269,
+    "elapsed": 1.1157910823822021
+  },
+  {
+    "question": "What optimizer did the BERT paper use?",
+    "should_answer": false,
+    "refused": true,
+    "given_answer": null,
+    "expected": null,
+    "correct": null,
+    "score": -1.0,
+    "reader_score": -1.0,
+    "rerank_score": -1.0,
+    "elapsed": 1.1833317279815674
+  }
+]

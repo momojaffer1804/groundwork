@@ -236,8 +236,10 @@ def answer_question_v3(question: str, chunks: list, verbose: bool = True, top_k_
             print(f"  rank {rank+1}: reader={result['score']:.4f}  "
                   f"rerank={rerank_score:.4f}  combined={combined_score:.4f}  "
                   f"answer={result['answer']!r}")
-
+        MIN_RERANK_SCORE = 0.3
         if not result["answer"]:
+            continue
+        if rerank_score < MIN_RERANK_SCORE:
             continue
 
         if combined_score > best["score"]:

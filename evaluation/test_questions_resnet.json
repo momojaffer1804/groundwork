@@ -1,0 +1,15 @@
+{
+  "paper": "sample_papers/resnet.pdf",
+  "questions": [
+    {"question": "What is the top-5 error rate of the ResNet ensemble on the ImageNet test set?", "expected_answer": "3.57%", "answerable": true},
+    {"question": "How many layers does the deepest ResNet used for ImageNet classification have?", "expected_answer": "152", "answerable": true},
+    {"question": "What is the top-1 error rate of the 34-layer plain network on ImageNet validation?", "expected_answer": "28.54", "answerable": true},
+    {"question": "What relative improvement was obtained on the COCO object detection dataset?", "expected_answer": "28%", "answerable": true},
+    {"question": "What optimization method was used to train the networks, SGD or Adam?", "expected_answer": "SGD", "answerable": true},
+    {"question": "What weight decay value was used in ImageNet training?", "expected_answer": "0.0001", "answerable": true},
+    {"question": "How many layers does the aggressively deep CIFAR-10 model explored in this paper have?", "expected_answer": "1202", "answerable": true},
+    {"question": "What GPU model did the authors use to train their networks?", "expected_answer": null, "answerable": false},
+    {"question": "What was ResNet's accuracy on the MNIST dataset?", "expected_answer": null, "answerable": false},
+    {"question": "What optimizer did the BERT paper use?", "expected_answer": null, "answerable": false}
+  ]
+}

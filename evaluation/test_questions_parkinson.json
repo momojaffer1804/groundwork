@@ -1,0 +1,15 @@
+{
+  "paper": "sample_papers/parkinson_paper_test.pdf",
+  "questions": [
+    {"question": "By what percentage did PD prevalence increase between 1990 and 2016?", "expected_answer": "74.3%", "answerable": true},
+    {"question": "Who first described Parkinson's disease and in what year?", "expected_answer": "James Parkinson, 1817", "answerable": true},
+    {"question": "What percentage of PD patients experience gait freezing and falls after about 17 years?", "expected_answer": "80%", "answerable": true},
+    {"question": "What gene is most commonly associated with autosomal-dominant Parkinson's disease?", "expected_answer": "LRRK2", "answerable": true},
+    {"question": "What gene is the most common cause of autosomal-recessive early-onset Parkinson's syndrome?", "expected_answer": "PRKN", "answerable": true},
+    {"question": "What percentage of people with PD experience hyposmia or anosmia?", "expected_answer": "90%", "answerable": true},
+    {"question": "What percentage reduction in daily L-DOPA dose was achieved after iPSC-derived dopamine cell transplantation?", "expected_answer": "6%", "answerable": true},
+    {"question": "What is the survival rate for Parkinson's disease patients after diagnosis?", "expected_answer": null, "answerable": false},
+    {"question": "What was the funding amount awarded for this study?", "expected_answer": null, "answerable": false},
+    {"question": "What optimizer did the BERT paper use?", "expected_answer": null, "answerable": false}
+  ]
+}
