@@ -195,22 +195,26 @@ def answer_question_v2(question: str, chunks: list, verbose: bool = True, top_k:
               f"({elapsed / max(len(top_chunks), 1):.2f}s/chunk avg).")
 
     return best, elapsed
+
+
 def answer_question_v3(question: str, chunks: list, verbose: bool = True, top_k_retrieve: int = None, top_k_rerank: int = None):
     """
     Full pipeline (Phase 4): retrieve top-k via bi-encoder, rerank down
     to a smaller top-k via cross-encoder, THEN run the reader only on
     those reranked chunks.
 
-    This fixes the failure mode found in answer_question_v2: bi-encoder
-    retrieval alone can rank a wrong-but-topically-related chunk close
-    to the right one, and a falsely confident reader score can then tip
-    the combined score toward the wrong answer. The cross-encoder gives
-    a much sharper "does this chunk actually answer the question"
-    signal before the reader ever runs, so the reader is choosing among
-    a much cleaner, smaller set of candidates.
+    Two extra checks beyond just picking the highest combined score:
+    - rerank_score has to clear a minimum bar (chunk actually has to be
+      relevant, not just have a confident-sounding reader answer)
+    - the answer text has to actually appear in the chunk it came from --
+      found real cases where the reader was 80%+ confident about a number
+      that was just sitting nearby in the text, not the real answer. This
+      catches that instead of trusting confidence alone.
     """
     from retriever import retrieve_top_k, TOP_K
     from reranker import rerank, TOP_K_AFTER_RERANK
+
+    MIN_RERANK_SCORE = 0.3
 
     tokenizer, model = _load_model()
     k_retrieve = top_k_retrieve or TOP_K
@@ -236,10 +240,17 @@ def answer_question_v3(question: str, chunks: list, verbose: bool = True, top_k_
             print(f"  rank {rank+1}: reader={result['score']:.4f}  "
                   f"rerank={rerank_score:.4f}  combined={combined_score:.4f}  "
                   f"answer={result['answer']!r}")
-        MIN_RERANK_SCORE = 0.3
+
         if not result["answer"]:
             continue
+
         if rerank_score < MIN_RERANK_SCORE:
+            continue
+
+        # answer has to actually be in the chunk it came from
+        if result["answer"].strip().lower() not in chunk.lower():
+            if verbose:
+                print(f"    -> rejected, answer not found in source chunk")
             continue
 
         if combined_score > best["score"]:
@@ -257,6 +268,8 @@ def answer_question_v3(question: str, chunks: list, verbose: bool = True, top_k_
         print(f"\nDone in {elapsed:.1f}s across {len(reranked)} reranked chunks.")
 
     return best, elapsed
+
+
 if __name__ == "__main__":
     # Usage: python pipeline/qa_engine.py sample_papers/your_paper.pdf "your question"
     if len(sys.argv) != 3:
@@ -274,12 +287,9 @@ if __name__ == "__main__":
     chunks = chunk_text(text)
     print(f"Document split into {len(chunks)} chunks.\n")
 
-    result, elapsed = answer_question_v2(question, chunks)
+    result, elapsed = answer_question_v3(question, chunks)
 
-    print("\nRESULT (Phase 4: retrieval + reader)")
+    print("\nRESULT (Phase 4: retrieval + rerank + verification)")
     print(f"Question: {question}")
     print(f"Answer:   {result['answer']}")
-    print(f"Reader score:    {result['score']:.4f}")
-    print(f"Retrieval score: {result['retrieval_score']:.4f}")
-    print(f"Found in top-k rank #{result['chunk_idx'] + 1}")
-    print(f"Total latency: {elapsed:.1f}s  <-- compare this to Phase 1's number")
+    print(f"Score:    {result['score']:.4f}")
