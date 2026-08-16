@@ -79,6 +79,12 @@ sizes might reduce this - not yet tested.
 failures and pick a rough threshold, not enough to make strong generalization
 claims. A larger, multi-paper eval set is the natural next step.
 
+### Dense-numeric question failure (known, diagnosed, not fixed)
+
+One question in the eval set ("What is beam search width used for
+inference?") fails even though retrieval and reranking correctly rank
+the right
+
 ## Setup
 
 ```bash
