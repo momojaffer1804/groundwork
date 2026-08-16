@@ -56,3 +56,39 @@ model ceiling at this point, not something fixable by messing with chunk
 size more. would need actual fine-tuning to fix properly and that's not
 realistic here, no gpu, no training data, not worth the time against the
 deadline.
+## Confidence vs correctness -- the real unsolved problem (final finding)
+
+Started as "zero hallucination" objective. Not achievable with this
+architecture. Real finding, precise version:
+
+Reader confidence tracks "how sure am I about this span," not "is this
+span actually correct." When a paper has two real, similar numbers near
+each other (e.g. CIFAR-10 experiment mentioning "100 and 1000 layers" in
+one spot, and a more specific number like "1202 layers" elsewhere), the
+reader can be highly confident about the wrong one, because it's a real
+number from the text, not a fabrication.
+
+Three fixes attempted:
+
+1. Adaptive chunking (smaller chunks in number-dense regions) -- tested
+   against full eval set, made results worse, reverted. Shrinking context
+   too much seems to remove the surrounding info the reader needs to
+   recognize an answer exists at all.
+
+2. Minimum rerank score gate -- tested via threshold sweep 0.05 to 0.6,
+   had zero effect on the known false positive (MNIST case). The wrong
+   chunk had a high rerank score too, so this gate couldn't distinguish
+   relevant-but-wrong from relevant-and-right.
+
+3. Verbatim verification (answer must appear in source chunk) -- WORKS for
+   catching fabricated answers, confirmed on the CIFAR-10 case that it does
+   NOT catch this specific failure. Tested directly: "1000" is genuinely in
+   the winning chunk, so the check correctly found nothing to reject, even
+   though "1000" was still the wrong answer to the specific question.
+
+Conclusion: this is a real ceiling for confidence-based refusal +
+verbatim verification on an extractive reader. Not fixed in this version.
+Actual fixes would need a generative reader that reasons across full
+context, or a real answer-grounding verification model -- both bigger
+builds, out of scope for this project's timeline. Documented in README
+under "What would actually fix the remaining problem."
